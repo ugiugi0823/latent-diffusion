@@ -64,7 +64,7 @@ model:
     cond_stage_config:
       target: ldm.modules.encoders.modules.ClassEmbedder
       params:
-        n_classes: 1001
+        n_classes: 5
         embed_dim: 512
         key: class_label
 data:
