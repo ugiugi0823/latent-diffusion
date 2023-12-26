@@ -101,6 +101,7 @@ class DDPM(pl.LightningModule):
         if monitor is not None:
             self.monitor = monitor
         if ckpt_path is not None:
+            print("🦧👑"*50)
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys, only_model=load_only_unet)
 
         self.register_schedule(given_betas=given_betas, beta_schedule=beta_schedule, timesteps=timesteps,
@@ -1406,6 +1407,17 @@ class DiffusionWrapper(pl.LightningModule):
             xc = torch.cat([x] + c_concat, dim=1)
             out = self.diffusion_model(xc, t)
         elif self.conditioning_key == 'crossattn':
+            # c_crossattn 리스트가 None이 아니고, 리스트 내 모든 요소가 None이 아닌지 확인
+            # if c_crossattn is not None and all(element is not None for element in c_crossattn):
+            #     # c_crossattn 리스트가 유효한 경우의 처리
+            #     cc = torch.cat(c_crossattn, 1)
+            #     # ... 이후의 처리 ...
+            # else:
+            #     # c_crossattn 리스트가 유효하지 않은 경우의 처리
+            #     # 예: 오류 메시지 출력, 기본값 사용, 예외 발생 등
+            #     print("c_crossattn 리스트가 유효하지 않습니다.")
+                # 또는 기본값 설정, 예외 처리 등
+
             cc = torch.cat(c_crossattn, 1)
             out = self.diffusion_model(x, t, context=cc)
         elif self.conditioning_key == 'hybrid':
