@@ -350,6 +350,8 @@ class ImageLogger(Callback):
                 pl_module.eval()
 
             with torch.no_grad():
+                print("🌋"*60)
+                print("⛰️"*60)
                 images = pl_module.log_images(batch, split=split, **self.log_images_kwargs)
 
             for k in images:
@@ -463,6 +465,7 @@ if __name__ == "__main__":
     # running as `python main.py`
     # (in particular `main.DataModuleFromConfig`)
     sys.path.append(os.getcwd())
+    print("sys.path.append(os.getcwd()) == ",sys.path.append(os.getcwd()))
 
     parser = get_parser()
     parser = Trainer.add_argparse_args(parser)
@@ -533,7 +536,7 @@ if __name__ == "__main__":
 
         # model
         model = instantiate_from_config(config.model)
-
+        # model.load_state_dict(torch.load('/vcl3/mahogany/latent-diffusion/logs/2023-10-02T23-08-52_ffhq-ldm-vq-4/checkpoints/new_model.ckpt')['state_dict'])
         # trainer and callbacks
         trainer_kwargs = dict()
 
@@ -556,8 +559,9 @@ if __name__ == "__main__":
                 }
             },
         }
-        default_logger_cfg = default_logger_cfgs["testtube"]
-        if "logger" in lightning_config:
+        default_logger_cfg = default_logger_cfgs["wandb"]
+        if "logger" in  lightning_config:
+            print("lightning_config 안에 logger가 있습니다.")
             logger_cfg = lightning_config.logger
         else:
             logger_cfg = OmegaConf.create()
@@ -673,6 +677,8 @@ if __name__ == "__main__":
         # configure learning rate
         bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate
         if not cpu:
+            print("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥")
+            print(lightning_config.trainer.gpus)
             ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
         else:
             ngpu = 1
@@ -716,12 +722,48 @@ if __name__ == "__main__":
         # run
         if opt.train:
             try:
+                print("🔥"*40)
+                # 사전학습된 가중치 로드
+                checkpoint = torch.load("./models/ldm/ffhq256/model.ckpt")
+                model.load_state_dict(checkpoint['state_dict'], strict=False)
+
+                # 학습시키고자 하는 마지막 레이어의 이름을 리스트에 추가합니다.
+                last_layer_names = [
+                    'first_stage_model.decoder.up.2.upsample.conv.bias',
+                    'first_stage_model.decoder.norm_out.weight',
+                    'first_stage_model.decoder.norm_out.bias',
+                    'first_stage_model.decoder.conv_out.weight',
+                    'first_stage_model.decoder.conv_out.bias',
+                    'first_stage_model.quantize.embedding.weight',
+                    'first_stage_model.quant_conv.weight',
+                    'first_stage_model.quant_conv.bias',
+                    'first_stage_model.post_quant_conv.weight',
+                    'first_stage_model.post_quant_conv.bias'
+                ]
+
+                # 모든 레이어의 requires_grad를 False로 설정하고, 
+                # 마지막 레이어들만 학습 가능하도록 설정합니다.
+                for name, param in model.named_parameters():
+                    param.requires_grad = name in last_layer_names
+
+
+                # 모델의 각 레이어와 해당 레이어가 학습 가능한지 여부를 출력합니다.
+                # for name, param in model.named_parameters():
+                #     print(f"Layer: {name}, Trainable: {param.requires_grad}")
+                
+                # print(model_state_dict)
+                print("""
+                      🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥
+                      자 이제 학습을 시작합니다
+                      🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥🐥
+                      """)
                 trainer.fit(model, data)
             except Exception:
                 melk()
                 raise
         if not opt.no_test and not trainer.interrupted:
-            trainer.test(model, data)
+            print("fdf")
+            # trainer.test(model, data)
     except Exception:
         if opt.debug and trainer.global_rank == 0:
             try:
