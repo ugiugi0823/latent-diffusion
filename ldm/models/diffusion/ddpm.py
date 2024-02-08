@@ -414,6 +414,7 @@ class DDPM(pl.LightningModule):
         return log
 
     def configure_optimizers(self):
+        print("🦆"*40)
         lr = self.learning_rate
         params = list(self.model.parameters())
         if self.learn_logvar:
@@ -455,6 +456,8 @@ class LatentDiffusion(DDPM):
         except:
             self.num_downs = 0
         if not scale_by_std:
+            print("🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓not scale std🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓🐓")
+            print("🐓🐓🐓🐓🐓🐓🐓",scale_factor)
             self.scale_factor = scale_factor
         else:
             self.register_buffer('scale_factor', torch.tensor(scale_factor))
@@ -479,8 +482,10 @@ class LatentDiffusion(DDPM):
     def on_train_batch_start(self, batch, batch_idx, dataloader_idx):
         # only for very first batch
         if self.scale_by_std and self.current_epoch == 0 and self.global_step == 0 and batch_idx == 0 and not self.restarted_from_ckpt:
+            
             assert self.scale_factor == 1., 'rather not use custom rescaling and std-rescaling simultaneously'
             # set rescale weight to 1./std of encodings
+            print("🦮"*40)
             print("### USING STD-RESCALING ###")
             x = super().get_input(batch, self.first_stage_key)
             x = x.to(self.device)
@@ -510,19 +515,23 @@ class LatentDiffusion(DDPM):
     def instantiate_cond_stage(self, config):
         if not self.cond_stage_trainable:
             if config == "__is_first_stage__":
+                print("👾"*40)
                 print("Using first stage also as cond stage.")
                 self.cond_stage_model = self.first_stage_model
             elif config == "__is_unconditional__":
+                print("👾"*40)
                 print(f"Training {self.__class__.__name__} as an unconditional model.")
                 self.cond_stage_model = None
                 # self.be_unconditional = True
             else:
+                print("👾"*40)
                 model = instantiate_from_config(config)
                 self.cond_stage_model = model.eval()
                 self.cond_stage_model.train = disabled_train
                 for param in self.cond_stage_model.parameters():
                     param.requires_grad = False
         else:
+            print("👾"*40)
             assert config != '__is_first_stage__'
             assert config != '__is_unconditional__'
             model = instantiate_from_config(config)
@@ -1011,6 +1020,7 @@ class LatentDiffusion(DDPM):
         return mean_flat(kl_prior) / np.log(2.0)
 
     def p_losses(self, x_start, cond, t, noise=None):
+        # print("🦄"*40)
         noise = default(noise, lambda: torch.randn_like(x_start))
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         model_output = self.apply_model(x_noisy, t, cond)
@@ -1042,7 +1052,8 @@ class LatentDiffusion(DDPM):
         loss_dict.update({f'{prefix}/loss_vlb': loss_vlb})
         loss += (self.original_elbo_weight * loss_vlb)
         loss_dict.update({f'{prefix}/loss': loss})
-
+        # print("이것만 바꾸었다.🐬")
+        loss.requires_grad = True
         return loss, loss_dict
 
     def p_mean_variance(self, x, c, t, clip_denoised: bool, return_codebook_ids=False, quantize_denoised=False,
@@ -1362,10 +1373,13 @@ class LatentDiffusion(DDPM):
     def configure_optimizers(self):
         lr = self.learning_rate
         params = list(self.model.parameters())
+        
         if self.cond_stage_trainable:
+            print("🐯"*40)
             print(f"{self.__class__.__name__}: Also optimizing conditioner params!")
             params = params + list(self.cond_stage_model.parameters())
         if self.learn_logvar:
+            print("🐰"*40)
             print('Diffusion model optimizing logvar')
             params.append(self.logvar)
         opt = torch.optim.AdamW(params, lr=lr)
