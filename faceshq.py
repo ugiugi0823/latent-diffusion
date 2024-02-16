@@ -51,8 +51,8 @@ class CelebAHQValidation(FacesBase):
 class FFHQTrain(FacesBase):
     def __init__(self, size, keys=None):
         super().__init__()
-        root = "/home/ubuntu/.cache/autoencoders/data_ffhq"
-        with open("/vcl3/mahogany/latent-diffusion/data/wta_total_train.txt", "r") as f:
+        root = "data/wta/data_ffhq"
+        with open("./data/wta_total_train.txt", "r") as f:
             relpaths = f.read().splitlines()
         paths = [os.path.join(root, relpath) for relpath in relpaths]
         self.data = ImagePaths(paths=paths, size=size, random_crop=False)
@@ -62,9 +62,9 @@ class FFHQTrain(FacesBase):
 class FFHQValidation(FacesBase):
     def __init__(self, size, keys=None):
         super().__init__()
-        root = "/home/ubuntu/.cache/autoencoders/data_ffhq_val"
+        root = "data/wta/data_ffhq_val"
         
-        with open("/vcl3/mahogany/latent-diffusion/data/wta_total_val.txt", "r") as f:
+        with open("./data/wta_total_val.txt", "r") as f:
             relpaths = f.read().splitlines()
         paths = [os.path.join(root, relpath) for relpath in relpaths]
         self.data = ImagePaths(paths=paths, size=size, random_crop=False)
