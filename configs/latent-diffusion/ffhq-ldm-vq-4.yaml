@@ -10,7 +10,8 @@ model:
     first_stage_key: image
     image_size: 64
     channels: 3
-    monitor: val/loss_simple_ema
+    monitor: val/loss
+    use_ema: False
     unet_config:
       target: ldm.modules.diffusionmodules.openaimodel.UNetModel
       params:
